@@ -1,68 +1,96 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
+  justify-content: center;
+  /* Centers the content horizontally */
+  align-items: center;
+  /* Centers the content vertically */
   min-height: 100vh;
+  /* Ensure full height */
+  background-color: #6abee9;
+  /* Set a background color for the page */
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
+table {
+  width: 100%;
+  /* Adjust width as needed */
+  min-width: 650px;
+  border-collapse: collapse;
+  background-color: #fff;
+  /* Set background color for the table */
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /* Optional: rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Optional: shadow for depth */
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+th, td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  /* Add border to cells */
+  text-align: left;
 }
+
+th {
+  background-color: #f9fafb;
+  /* Light background for headers */
+  font-weight: bold;
+  color: #4b5563;
+  /* Dark text color for readability */
+}
+
+tr:hover {
+  background-color: #e3f2fd;
+  /* Light blue hover effect */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Smooth transition for hover effect */
+  transform: scale(1.01);
+  /* Slight zoom effect on hover */
+  cursor: pointer;
+}
+
+tr:nth-child(even) {
+  background-color: #d7dce0;
+  /* Zebra striping for even rows */
+  cursor: pointer;
+}
+
+tr:nth-child(odd) {
+  background-color: #ffffff;
+  /* Zebra striping for odd rows */
+  cursor: pointer;
+}
+
+/* Modal backdrop */
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, black, gray 50%, black);
+}
+
+/* Modal Styles */
+.modal-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: #fff;
+  border: 2px solid #000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.modal-description {
+  margin-top: 16px;
+}
+
+.modal-button {
+  margin-top: 24px;
+}
+
+
+;
