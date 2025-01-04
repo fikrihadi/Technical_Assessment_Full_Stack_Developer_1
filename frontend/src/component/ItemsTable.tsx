@@ -1,176 +1,238 @@
 import React, { useEffect, useState } from "react";
-import { getItems, getItemsById } from "../api/itemAPI";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../app/store";
+import {
+  fetchItems,
+  fetchItemById,
+  saveNewItem,
+  updateItem,
+  deleteItem,
+  selectItem,
+} from "../features/items/itemsSlice";
+import {
+  Modal,
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  Input,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { Item } from "../modal/Item";
-import { Modal, Box, Typography, IconButton, Button } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close"; // Import CloseIcon
 
 const ItemsTable: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [open, setOpen] = useState(false); // This state controls whether the modal is open
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, loading, error, selectedItem } = useSelector(
+    (state: RootState) => state.items
+  );
+
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      try {
-        const fetchedItems = await getItems();
-        setItems(fetchedItems);
-      } catch (err) {
-        console.error("Failed to fetch items:", err);
-        setError("Failed to fetch items");
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchItems());
+  }, [dispatch]);
 
-    fetchItems();
-  }, []);
+  const handleRowClick = (item: Item) => {
+    dispatch(fetchItemById(item.id));
+    setOpen(true);
+  };
 
-  const handleRowClick = async (item: Item) => {
-    try {
-      setLoading(true);
-
-      const fetchedItem = await getItemsById(item.id);
-      setSelectedItem(fetchedItem);
-      setOpen(true); // Open the modal
-    } catch (error) {
-      console.error("Failed to fetch item details:", error);
-      setError("Failed to fetch item details");
-    } finally {
-      setLoading(false); // End the loading state
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let value = event.target.value.replace(/[^\d.]/g, ""); // Remove non-numeric characters
+    if (value === "" || isNaN(parseFloat(value)) || parseFloat(value) < 0) {
+      value = "0.00"; // Default to 0.00 if invalid
     }
+    const numericValue = parseFloat(value);
+    if (selectedItem) {
+      dispatch(selectItem({ ...selectedItem, price: numericValue }));
+    }
+  };
+
+  const handleSaveNewItem = () => {
+    if (selectedItem) {
+      dispatch(saveNewItem(selectedItem));
+      setOpen(false);
+    }
+  };
+
+  const handleUpdateItem = () => {
+    if (selectedItem) {
+      dispatch(updateItem(selectedItem));
+      setOpen(false);
+    }
+  };
+
+  const handleDeleteItem = () => {
+    if (selectedItem) {
+      dispatch(deleteItem(selectedItem.id));
+      setOpen(false);
+    }
+  };
+
+  const handleAddNewItem = () => {
+    dispatch(
+      selectItem({
+        id: 0,
+        name: "",
+        description: "",
+        price: 0.0,
+        createdAt: "",
+        updatedAt: "",
+      })
+    );
+    setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setSelectedItem(null);
   };
 
-  const handleAddNewItem = () => {
-    setSelectedItem(null);
-    setOpen(true);
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return "";
+    return new Date(dateString)
+      .toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "UTC",
+      })
+      .replace(",", "")
+      .replace(":", ".");
   };
 
-  if (loading)
-    return <div className="text-center text-gray-500">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-red-200">
-      {/* Add New Item Button */}
+    <div>
       <Button
-        variant="contained"
-        color="primary"
         onClick={handleAddNewItem}
-        sx={{ marginBottom: 2 }}
+        variant="contained" // Primary button style
+        color="primary" // Primary color theme
+        sx={{ marginBottom: 2 }} // Optional margin for spacing
       >
         Add New Item
       </Button>
-
-      <div className="w-full max-w-4xl">
-        <table className="w-full border border-gray-400 bg-white text-sm bg-red-200">
-          <thead>
-            <tr className="bg-red-800 text-white">
-              <th className="px-4 py-2 border border-gray-400 text-left">ID</th>
-              <th className="px-4 py-2 border border-gray-400 text-left">
-                Name
-              </th>
-              <th className="px-4 py-2 border border-gray-400 text-left">
-                Description
-              </th>
-              <th className="px-4 py-2 border border-gray-400 text-right">
-                Price (RM)
-              </th>
-              <th className="px-4 py-2 border border-gray-400 text-left">
-                Created At
-              </th>
-              <th className="px-4 py-2 border border-gray-400 text-left">
-                Updated At
-              </th>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Create Date</th>
+            <th>Update Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id} onClick={() => handleRowClick(item)}>
+              <td>{item.id}</td>
+              <td>{item.name}</td>
+              <td>{item.description}</td>
+              <td>{item.price.toFixed(2)}</td>
+              <td>{formatDateTime(item.createdAt)}</td>
+              <td>{formatDateTime(item.updatedAt)}</td>
             </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr
-                key={item.id}
-                className={`${
-                  index % 2 === 0 ? "bg-red-100" : "bg-red-50"
-                } hover:bg-red-300 cursor-pointer`}
-                onClick={() => handleRowClick(item)}
-              >
-                <td className="px-4 py-2 border border-gray-400">{item.id}</td>
-                <td className="px-4 py-2 border border-gray-400">
-                  {item.name}
-                </td>
-                <td className="px-4 py-2 border border-gray-400">
-                  {item.description}
-                </td>
-                <td className="px-4 py-2 border border-gray-400 text-right">
-                  RM{item.price.toFixed(2)}
-                </td>
-                <td className="px-4 py-2 border border-gray-400">
-                  {new Date(item.createdAt).toLocaleString()}
-                </td>
-                <td className="px-4 py-2 border border-gray-400">
-                  {item.updatedAt
-                    ? new Date(item.updatedAt).toLocaleString()
-                    : ""}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal */}
+          ))}
+        </tbody>
+      </table>
 
       <Modal
         open={open}
         onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <Box className="modal-box">
+        <Box
+          sx={{
+            width: 400,
+            padding: 2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            backgroundColor: "white",
+            borderRadius: 2,
+            boxShadow: 3,
+            position: "relative",
+          }}
+        >
           <IconButton
-            edge="end"
-            color="inherit"
             onClick={handleClose}
-            aria-label="close"
             sx={{
               position: "absolute",
-              right: 8,
-              top: 8,
+              top: 10,
+              right: 10,
+              color: "black",
             }}
           >
             <CloseIcon />
           </IconButton>
 
-          <Typography id="modal-modal-title" variant="h6" component="h2">
+          <Typography variant="h6" sx={{ marginBottom: 2 }}>
             Item Details
           </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            <strong>Name:</strong> {selectedItem?.name}
-          </Typography>
-          <Typography>
-            <strong>Description:</strong> {selectedItem?.description}
-          </Typography>
-          <Typography>
-            <strong>Price (RM):</strong> RM{selectedItem?.price.toFixed(2)}
-          </Typography>
-          <Typography>
-            <strong>Created At:</strong>{" "}
-            {selectedItem?.createdAt
-              ? new Date(selectedItem.createdAt).toLocaleString()
-              : "N/A"}
-          </Typography>
-          <Typography>
-            <strong>Updated At:</strong>{" "}
-            {selectedItem?.updatedAt
-              ? new Date(selectedItem.updatedAt).toLocaleString()
-              : "N/A"}
-          </Typography>
+
+          <Input
+            value={selectedItem?.name || ""}
+            onChange={(e) =>
+              dispatch(selectItem({ ...selectedItem!, name: e.target.value }))
+            }
+            fullWidth
+            placeholder="Enter item name"
+            sx={{ marginBottom: 2 }}
+          />
+          <Input
+            value={selectedItem?.description || ""}
+            onChange={(e) =>
+              dispatch(
+                selectItem({ ...selectedItem!, description: e.target.value })
+              )
+            }
+            fullWidth
+            placeholder="Enter item description"
+            sx={{ marginBottom: 2 }}
+          />
+          <Input
+            value={selectedItem?.price.toFixed(2) || ""}
+            onChange={handlePriceChange}
+            fullWidth
+            placeholder="Enter item price"
+            sx={{ marginBottom: 2 }}
+          />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            {selectedItem && selectedItem.id === 0 ? (
+              <Button variant="contained" onClick={handleSaveNewItem}>
+                Save
+              </Button>
+            ) : (
+              <Button variant="contained" onClick={handleUpdateItem}>
+                Update
+              </Button>
+            )}
+            {selectedItem && selectedItem.id !== 0 && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteItem}
+              >
+                Delete
+              </Button>
+            )}
+          </Box>
         </Box>
       </Modal>
     </div>
