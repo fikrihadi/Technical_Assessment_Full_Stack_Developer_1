@@ -57,7 +57,12 @@ const ItemsTable: React.FC = () => {
 
   const handleUpdateItem = () => {
     if (selectedItem) {
-      dispatch(updateItem(selectedItem));
+      const updatedItem = {
+        ...selectedItem,
+        createdAt: selectedItem.createdAt, // Ensure 'createdAt' is not overwritten
+      };
+
+      dispatch(updateItem(updatedItem));
       setOpen(false);
     }
   };

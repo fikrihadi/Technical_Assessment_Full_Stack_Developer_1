@@ -81,13 +81,23 @@ const itemsSlice = createSlice({
         state.selectedItem = action.payload;
       })
       .addCase(saveNewItem.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        const newItem = {
+          ...action.payload,
+          createdAt: action.payload.createdAt || new Date().toISOString(), // Set current date if it's missing
+        };
+      
+        state.items.push(newItem);
       })
       .addCase(updateItem.fulfilled, (state, action) => {
         state.items = state.items.map((item) =>
-          item.id === action.payload.id ? action.payload : item
+          item.id === action.payload.id
+            ? {
+                ...action.payload,
+                createdAt: item.createdAt,  // Ensure 'createdAt' is preserved after update
+              }
+            : item
         );
-      })
+      })    
       .addCase(deleteItem.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
       });
