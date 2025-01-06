@@ -25,7 +25,6 @@ const ItemsTable: React.FC = () => {
   const { items, loading, error, selectedItem } = useSelector(
     (state: RootState) => state.items
   );
-
   const [open, setOpen] = useState(false);
 
   useEffect(() => {

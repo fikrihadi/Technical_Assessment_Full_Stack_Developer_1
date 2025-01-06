@@ -10,9 +10,14 @@ export const createItemController = async (req: Request, res: Response, next: Ne
   // Call the validation function
   const validationResult = validateItemInput(name, description, price);
 
-  if (validationResult) {
+  if (validationResult && !validationResult.valid) {
     // If validation failed, send a response with the validation errors
-    res.status(400).json(validationResult);
+    res.status(400).json({
+      success: false,
+      message: 'item insertion failed',
+      errors: validationResult.errors
+    });
+    return; // Prevent further execution
   }
 
   try {
@@ -57,10 +62,16 @@ export const updateItemController = async (req: Request, res: Response, next: Ne
 
   const validationResult = validateItemInput(name, description, price);
 
-  if (validationResult) {
+  if (validationResult && !validationResult.valid) {
     // If validation failed, send a response with the validation errors
-    res.status(400).json(validationResult);
+    res.status(400).json({
+      success: false,
+      message: 'item update failed',
+      errors: validationResult.errors
+    });
+    return; // Prevent further execution
   }
+
 
   try {
     const updatedItem = await itemService.updateItem(Number(id), name, description, price);

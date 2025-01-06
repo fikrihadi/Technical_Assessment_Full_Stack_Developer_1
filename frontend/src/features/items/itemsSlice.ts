@@ -7,6 +7,8 @@ import {
   updateItemById,
   deleteItemsByid,
 } from "../../api/itemAPI";
+import { AxiosError } from "axios";
+
 
 interface ItemsState {
   items: Item[];
@@ -36,15 +38,37 @@ export const fetchItemById = createAsyncThunk(
 
 export const saveNewItem = createAsyncThunk(
   "items/saveNewItem",
-  async (item: Item) => {
-    return await insertItem(item);
+  async (item: Item, { rejectWithValue }) => {
+    try {
+      // Attempt to insert the item
+      return await insertItem(item);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.message || "Failed to save item");
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("An unknown error occurred");
+      }
+    }
   }
 );
 
 export const updateItem = createAsyncThunk(
   "items/updateItem",
-  async (item: Item) => {
-    return await updateItemById(item.id, item);
+  async (item: Item, {rejectWithValue}) => {
+    try {
+      // Attempt to insert the item
+      return await updateItemById(item.id, item);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+      return rejectWithValue(error.message || "Failed to update item");
+      } else if (error instanceof Error) {
+      return  rejectWithValue(error.message);
+      } else {
+      return   rejectWithValue("An unknown error occurred");
+      }
+    }
   }
 );
 
@@ -88,6 +112,11 @@ const itemsSlice = createSlice({
       
         state.items.push(newItem);
       })
+      .addCase(saveNewItem.rejected, (_state, action) => {
+        const errorMessage = action.payload as string;
+        // Show alert with error message
+        alert(`Error: ${errorMessage}`);
+      })
       .addCase(updateItem.fulfilled, (state, action) => {
         state.items = state.items.map((item) =>
           item.id === action.payload.id
@@ -97,6 +126,11 @@ const itemsSlice = createSlice({
               }
             : item
         );
+      })
+      .addCase(updateItem.rejected, (_state, action) => {
+        const errorMessage = action.payload as string;
+        // Show alert with error message
+        alert(`Error: ${errorMessage}`);
       })    
       .addCase(deleteItem.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
